@@ -5,53 +5,43 @@ import java.util.List;
 public class PriceCalculator {
 
     public double calculatePrice(List<Product> products, List<Coupon> coupons) {
-        double sum = 0;
-        if (products == null) {
+        double sumToPay;
+        if (products == null || products.isEmpty()) {
             return 0;
-        } else if (coupons == null) {
-            for (Product product : products) {
-                sum += product.getPrice();
-            }
-        } else if (coupons.size() == 1 && coupons.get(0).getCategory() == null) {
-            for (Product product : products) {
-                sum += product.getPrice() * (100 - coupons.get(0).getDiscountValueInPercents()) / 100;
-            }
-        } else if (coupons.size() == 1 && coupons.get(0).getCategory() != null) {
-            for (Product product : products) {
-                if (product.getCategory().equals(coupons.get(0).getCategory())) {
-                    sum += product.getPrice() * (100 - coupons.get(0).getDiscountValueInPercents()) / 100;
-                } else {
-                    sum += product.getPrice();
-                }
-            }
+        } else if (coupons == null || coupons.isEmpty()) {
+            sumToPay = getAllProductsPrice(products);
         } else {
-            Coupon theBestCoupon = choseTheBestCouponForBasket(products, coupons);
-            for (Product product : products) {
-                if (product.getCategory().equals(theBestCoupon.getCategory())) {
-                    sum += product.getPrice() * (100 - theBestCoupon.getDiscountValueInPercents()) / 100;
-                } else {
-                    sum += product.getPrice();
-                }
-            }
+            double discountBest = choseTheBestDiscountForBasket(products, coupons);
+            sumToPay = getAllProductsPrice(products) - discountBest;
         }
-        return Math.round(sum * 100.0) / 100.0;
+        return Math.round(sumToPay * 100.0) / 100.0;
     }
 
-    private Coupon choseTheBestCouponForBasket(List<Product> products, List<Coupon> coupons) {
-        double discountBest = 0;
-        int bestIndex = 0;
-        for (int i = 0; i < coupons.size(); i++) {
-            double discountSum = 0;
-            for (Product product : products) {
-                if (product.getCategory().equals(coupons.get(i).getCategory())) {
-                    discountSum += product.getPrice() * coupons.get(i).getDiscountValueInPercents() / 100;
-                }
-            } 
-            if (discountSum > discountBest) {
-                discountBest = discountSum;
-                bestIndex = i;
-            }
+    private static double getAllProductsPrice(List<Product> products) {
+        double sum = 0;
+        for (Product product : products) {
+            sum += product.getPrice();
         }
-        return coupons.get(bestIndex);
-    } 
+        return sum;
+    }
+
+    private double choseTheBestDiscountForBasket(List<Product> products, List<Coupon> coupons) {
+        if (coupons != null) {
+            double discountBest = 0;
+            for (Coupon coupon : coupons) {
+                double discountSum = 0;
+                for (Product product : products) {
+                    if (product.getCategory().equals(coupon.getCategory()) || coupon.getCategory() == null) {
+                        discountSum += product.getPrice() * coupon.getDiscountValueInPercents() / 100;
+                    }
+                }
+                if (discountSum > discountBest) {
+                    discountBest = discountSum;
+                }
+            }
+            return discountBest;
+        } else {
+            return 0;
+        }
+    }
 }

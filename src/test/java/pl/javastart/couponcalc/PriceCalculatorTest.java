@@ -22,6 +22,19 @@ public class PriceCalculatorTest {
     }
 
     @Test
+    public void shouldReturnZeroForEmptyProductsList() {
+        // given
+        PriceCalculator priceCalculator = new PriceCalculator();
+        List<Product> products = new ArrayList<>();
+
+        // when
+        double result = priceCalculator.calculatePrice(products, null);
+
+        // then
+        assertThat(result).isEqualTo(0.);
+    }
+
+    @Test
     public void shouldReturnPriceForSingleProductAndNoCoupons() {
 
         // given
